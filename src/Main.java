@@ -1,38 +1,30 @@
 import java.util.ArrayList;
+import java.util.HashMap;
+import com.google.gson.GsonBuilder;
 
 public class Main {
 
     public static ArrayList<Block> mainChain = new ArrayList<>();
 
-    public static void main(String[] args) {
+    public static int difficulty = 1;
+
+    public static void main(String[] args) throws Exception {
         mainChain.add(new Block("This is the Genesis Block", "0"));
+        System.out.println("Mining genesis Block......");
+        mainChain.getFirst().mine(difficulty);
+
         mainChain.add(new Block("This is the Second Block", mainChain.getLast().Hash));
-        mainChain.add(new Block("This is the Third Block", mainChain.getLast().Hash));
+        System.out.println("Mining second Block......");
+        mainChain.get(1).mine(difficulty);
 
-        for (int i = 0; i < mainChain.size(); i++) {
-            System.out.println("Hash for Block " + (i+1) + ":" + mainChain.get(i).Hash);
-        }
-    }
+        Boolean isChainValid = ConsensusAlgo.Verify(mainChain, difficulty);
 
-    public static Boolean consensus () {
-        Block currentBlock;
-        Block prevBlock;
-
-        for (int i =0; i < mainChain.size(); i++) {
-            currentBlock = mainChain.get(i);
-            prevBlock = mainChain.get(i - 1);
-
-            if (!currentBlock.Hash.equals(currentBlock.calculateHash())) {
-                System.out.println("The new calculated Hash of Block does not match the original Hash");
-                return false;
-            }
-
-            if (!prevBlock.calculateHash().equals(currentBlock.PreviousHash)) {
-                System.out.println("The new calculated Hash of previous Block does not match the current Hash of new Block");
-                return false;
-            }
+        // uses consensus algo to check the validity of chain
+        if (!isChainValid) {
+            throw new Exception("The Chain is Invalid");
         }
 
-        return true;
+        String mainChainJson = new GsonBuilder().setPrettyPrinting().create().toJson(mainChain);
+        System.out.println(mainChainJson);
     }
 }
